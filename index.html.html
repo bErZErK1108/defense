@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Master's Defense Availability Submission</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #dbe3ef;
+      --accent: #2563eb;
+      --accent-soft: #eaf2ff;
+      --success: #0f766e;
+      --danger: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 32px auto;
+      padding: 0 20px 40px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      padding: 24px;
+      margin-bottom: 22px;
+    }
+    h1 { margin: 0 0 10px; font-size: 30px; }
+    h2 { margin: 0 0 14px; font-size: 20px; }
+    p, li { font-size: 15px; }
+    .muted { color: var(--muted); }
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .slot-group {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      background: #fcfdff;
+    }
+    .slot-group h3 { margin: 0 0 10px; font-size: 17px; }
+    .slot {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-top: 1px dashed #e5e7eb;
+    }
+    .slot:first-of-type { border-top: none; }
+    label { cursor: pointer; }
+    input[type="text"], input[type="email"], textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #cfd8e3;
+      font-size: 15px;
+      outline: none;
+      transition: 0.2s ease;
+      font-family: inherit;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+    textarea { min-height: 100px; resize: vertical; }
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    .primary { background: var(--accent); color: white; }
+    .primary:hover { filter: brightness(0.95); }
+    .secondary { background: #eef2f7; color: var(--text); }
+    .secondary:hover { background: #e5ebf3; }
+    .status {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      display: none;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+    .status.success {
+      display: block;
+      background: #ecfdf5;
+      color: var(--success);
+      border: 1px solid #bbf7d0;
+    }
+    .status.error {
+      display: block;
+      background: #fef2f2;
+      color: var(--danger);
+      border: 1px solid #fecaca;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="badge">Master's Defense Availability</div>
+      <h1>Faculty Availability Submission Form</h1>
+      <p class="muted">Please select all time slots that you are available for the Master's defense. Your response will be submitted automatically and collected in a shared spreadsheet.</p>
+      <ul>
+        <li>Dates: April 15, 16, 17, 20, and 21, 2026</li>
+        <li>Time slots: 10:00–12:00 and 14:00–17:00</li>
+        <li>Multiple selections are allowed</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Submit Availability</h2>
+      <div class="field">
+        <label for="name">Faculty Name</label>
+        <input id="name" type="text" placeholder="e.g. Prof. Chan" />
+      </div>
+
+      <div class="field">
+        <label for="email">Email (optional)</label>
+        <input id="email" type="email" placeholder="e.g. name@cityu.edu.hk" />
+      </div>
+
+      <div class="field">
+        <label>Please select all available time slots</label>
+        <div class="grid" id="slotGrid"></div>
+      </div>
+
+      <div class="field">
+        <label for="note">Remarks (optional)</label>
+        <textarea id="note" placeholder="e.g. Online participation only; may need to leave early on the afternoon of April 17"></textarea>
+      </div>
+
+      <div class="actions">
+        <button class="primary" onclick="submitResponse()">Submit</button>
+        <button class="secondary" onclick="resetForm()">Clear Form</button>
+      </div>
+
+      <div id="status" class="status"></div>
+    </div>
+  </div>
+
+  <script>
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxVNJr3sE4KaPSc-_r0FqfeiI4Zs0_gyW4MT45_h_mfiVjZXYOfxxyH__kTtz1NxkmC/exec';
+
+    const slots = [
+      { day: '2026-04-15 (Wed)', label: '10:00-12:00' },
+      { day: '2026-04-15 (Wed)', label: '14:00-17:00' },
+      { day: '2026-04-16 (Thu)', label: '10:00-12:00' },
+      { day: '2026-04-16 (Thu)', label: '14:00-17:00' },
+      { day: '2026-04-17 (Fri)', label: '10:00-12:00' },
+      { day: '2026-04-17 (Fri)', label: '14:00-17:00' },
+      { day: '2026-04-20 (Mon)', label: '10:00-12:00' },
+      { day: '2026-04-20 (Mon)', label: '14:00-17:00' },
+      { day: '2026-04-21 (Tue)', label: '10:00-12:00' },
+      { day: '2026-04-21 (Tue)', label: '14:00-17:00' }
+    ];
+
+    const grouped = {};
+    slots.forEach((s, i) => {
+      if (!grouped[s.day]) grouped[s.day] = [];
+      grouped[s.day].push({ ...s, id: `slot-${i}` });
+    });
+
+    const slotGrid = document.getElementById('slotGrid');
+    Object.entries(grouped).forEach(([day, daySlots]) => {
+      const div = document.createElement('div');
+      div.className = 'slot-group';
+      div.innerHTML = `<h3>${day}</h3>` + daySlots.map(s => `
+        <div class="slot">
+          <input type="checkbox" id="${s.id}" value="${s.day} ${s.label}" />
+          <label for="${s.id}">${s.label}</label>
+        </div>
+      `).join('');
+      slotGrid.appendChild(div);
+    });
+
+    function resetForm() {
+      document.getElementById('name').value = '';
+      document.getElementById('email').value = '';
+      document.getElementById('note').value = '';
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+      clearStatus();
+    }
+
+    function showStatus(type, text) {
+      const box = document.getElementById('status');
+      box.className = `status ${type}`;
+      box.textContent = text;
+    }
+
+    function clearStatus() {
+      const box = document.getElementById('status');
+      box.className = 'status';
+      box.textContent = '';
+    }
+
+    async function submitResponse() {
+      clearStatus();
+
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const note = document.getElementById('note').value.trim();
+      const availableSlots = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+
+      if (!name) {
+        showStatus('error', 'Please enter the faculty name.');
+        return;
+      }
+      if (availableSlots.length === 0) {
+        showStatus('error', 'Please select at least one available time slot.');
+        return;
+      }
+
+      const payload = {
+        facultyName: name,
+        email: email,
+        note: note,
+        availableSlots: availableSlots
+      };
+
+      try {
+        const response = await fetch(WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (result.ok) {
+          showStatus('success', 'Submitted successfully. Your response has been saved.');
+          document.getElementById('name').value = '';
+          document.getElementById('email').value = '';
+          document.getElementById('note').value = '';
+          document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        } else {
+          showStatus('error', 'Submission failed. ' + (result.error || 'Unknown error.'));
+        }
+      } catch (err) {
+        showStatus('error', 'Submission failed. Please check whether the web app URL is correct and accessible. ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
